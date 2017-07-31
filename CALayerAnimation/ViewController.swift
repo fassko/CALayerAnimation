@@ -64,6 +64,8 @@ class ViewController: UIViewController {
     
     viewForLayer.layer.addSublayer(shapeLayer)
     
+    let spiral = drawSpiral(arc: 10.0, separation: 3.0, numPoints: 100)
+    
   }
   
   func createBezierPath(point1: CGPoint, point2: CGPoint, point3: CGPoint) -> UIBezierPath {
@@ -170,6 +172,55 @@ class ViewController: UIViewController {
     let x = radius * cos(theta)
     let y = radius * sin(theta)
     return CGPoint(x: CGFloat(x)+center.x, y: CGFloat(y)+center.y)
+  }
+  
+  func pointOnCircle(angle: CGFloat, radius: CGFloat, center: CGPoint) -> CGPoint {
+    return CGPoint(x: center.x + radius * cos(angle),
+                   y: center.y + radius * sin(angle))
+  }
+  
+  
+  func drawSpiral(arc: Double, separation: Double, numPoints: Int) -> [(Double,Double)] {
+    
+    /**
+    generate points on an Archimedes' spiral
+    with `arc` giving the length of arc between two points
+    and `separation` giving the distance between consecutive
+    turnings
+      - approximate arc length with circle arc at given distance
+        - use a spiral equation r = b * phi
+    **/
+    
+    var numPoints = numPoints
+    
+    // polar to cartesian
+    func p2c(r:Double, phi: Double) -> (Double,Double) {
+      return (r * cos(phi), r * sin(phi))
+    }
+    
+    // yield a point at origin
+    var result = [(Double(0),Double(0))]
+    
+    // initialize the next point in the required distance
+    var r = arc
+    let b = separation / (2 * .pi)
+    
+    // find the first phi to satisfy distance of `arc` to the second point
+    var phi = r / b
+    
+    while numPoints > 0 {
+      result.append(p2c(r: r, phi: phi))
+      
+//      advance the variables
+//      calculate phi that will give desired arc length at current radius
+//      (approximating with circle)
+      
+      phi += arc / r
+      r = b * phi
+      numPoints -= 1
+    }
+    
+    return result
   }
   
 }
