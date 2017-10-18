@@ -14,18 +14,26 @@ class ViewController: UIViewController {
   
   @IBOutlet weak var viewForLayer: UIView!
   
-  var shapeLayer: CAShapeLayer!
+  @IBOutlet weak var pauseResumeButton: UIButton!
   
-  var bezierPath: UIBezierPath!
   
-  var point1 = CGPoint(x: 100, y: 55)
-  var point2 = CGPoint(x: 150, y: 130)
-  var point3 = CGPoint(x: 50, y: 130)
+  private var shapeLayer: CAShapeLayer!
   
-  var center = CGPoint(x: 100, y: 55)
+  private var bezierPath: UIBezierPath!
   
-  var beziers: [UIBezierPath] = []
-   
+  private var point1 = CGPoint(x: 100, y: 55)
+  private var point2 = CGPoint(x: 150, y: 130)
+  private var point3 = CGPoint(x: 50, y: 130)
+  
+  private var center = CGPoint(x: 100, y: 55)
+  
+  private var beziers: [UIBezierPath] = []
+  
+  private var paused: Bool = false {
+    didSet {
+      pauseResumeButton.setTitle(paused ? "Resume" : "Pause", for: .normal)
+    }
+  }
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -40,7 +48,6 @@ class ViewController: UIViewController {
       points.append(CGPoint(x: CGFloat(point.0) + center.x, y: CGFloat(point.1) + center.y))
     }
     
-    
     for point in points {
       beziers.append(createBezierPath(point1: point, point2: point2, point3: point3))
     }
@@ -52,6 +59,8 @@ class ViewController: UIViewController {
     shapeLayer.fillColor = UIColor.clear.cgColor
     
     viewForLayer.layer.addSublayer(shapeLayer)
+    
+    pauseResumeButton.isEnabled = false
   }
   
   func createBezierPath(point1: CGPoint, point2: CGPoint, point3: CGPoint) -> UIBezierPath {
@@ -86,7 +95,30 @@ class ViewController: UIViewController {
     group.autoreverses = true
     
     shapeLayer.add(group, forKey: "anim")
+    
+    paused = false
+    pauseResumeButton.isEnabled = true
   }
+  
+  @IBAction func pauseResume(_ sender: Any) {
+    if paused {
+      let pausedTime = shapeLayer.timeOffset
+      shapeLayer.speed = 1.0
+      shapeLayer.timeOffset = 0.0
+      shapeLayer.beginTime = 0.0
+      let timeSincePause = shapeLayer.convertTime(CACurrentMediaTime(), from: nil) - pausedTime
+      shapeLayer.beginTime = timeSincePause
+      
+      paused = false
+    } else {
+      let pausedTime = shapeLayer.convertTime(CACurrentMediaTime(), from: nil)
+      shapeLayer.speed = 0.0
+      shapeLayer.timeOffset = pausedTime
+      
+      paused = true
+    }
+  }
+  
   
   func randomPointOnCircle(radius:Float, center:CGPoint) -> CGPoint {
     // Random angle in [0, 2*pi]
